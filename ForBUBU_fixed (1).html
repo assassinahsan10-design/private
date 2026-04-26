@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>For BUBU 🌹</title>
+<!-- Proper emoji + beautiful font from Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+<style>
+  /* ── RESET ─────────────────────────────────────────────── */
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  /* ── EMOJI FIX: force system emoji font everywhere ──────── */
+  /* This is the key fix — Android/iOS sometimes fall back to
+     a symbol font that shows as CJK boxes. Listing the right
+     emoji stacks prevents that. */
+  body, input, button, .emoji {
+    font-family:
+      'Playfair Display', Georgia, serif,
+      'Apple Color Emoji',       /* iOS / macOS */
+      'Segoe UI Emoji',          /* Windows */
+      'Noto Color Emoji',        /* Android / Linux */
+      'Twemoji Mozilla',         /* Firefox */
+      'EmojiOne Color',
+      'Android Emoji',
+      sans-serif;
+  }
+
+  /* Pure emoji spans — use a stack that skips all text fonts */
+  .e {
+    font-family:
+      'Apple Color Emoji',
+      'Segoe UI Emoji',
+      'Noto Color Emoji',
+      'Twemoji Mozilla',
+      'EmojiOne Color',
+      'Android Emoji',
+      sans-serif !important;
+    font-style: normal;
+    display: inline-block;
+  }
+
+  /* ── BASE ───────────────────────────────────────────────── */
+  html { height: 100%; }
+  body {
+    background: #1a0008;
+    color: #fff;
+    overflow-x: hidden;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── BACKGROUND ─────────────────────────────────────────── */
+  .bg-gradient {
+    position: fixed; inset: 0; z-index: 0;
+    animation: bgPulse 5s ease-in-out infinite;
+  }
+  @keyframes bgPulse {
+    0%,100%{ background: radial-gradient(ellipse at 20% 30%,#4a0018 0%,#1a0008 40%,#2d0010 70%,#1a0008 100%); }
+    33%    { background: radial-gradient(ellipse at 80% 20%,#3d0020 0%,#1a0008 40%,#4a0018 70%,#1a0008 100%); }
+    66%    { background: radial-gradient(ellipse at 50% 80%,#2d0030 0%,#1a0008 40%,#3d0020 70%,#1a0008 100%); }
+  }
+  canvas#love-bg { position:fixed; inset:0; width:100%; height:100%; z-index:1; pointer-events:none; }
+
+  /* ── ANIMATIONS ─────────────────────────────────────────── */
+  @keyframes heartbeat { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
+  @keyframes glow      { 0%,100%{text-shadow:0 0 10px #ff6b8a,0 0 20px #ff6b8a} 50%{text-shadow:0 0 25px #ff6b8a,0 0 50px #c2185b,0 0 80px #c2185b} }
+  @keyframes bounce    { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
+  @keyframes shake     { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+  @keyframes fadeIn    { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes float     { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+  @keyframes sparkle   { 0%,100%{opacity:0;transform:scale(0)} 50%{opacity:1;transform:scale(1)} }
+  @keyframes slideUp   { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes ring-pulse{ 0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(255,107,138,.7)} 50%{transform:scale(1.05);box-shadow:0 0 0 20px rgba(255,107,138,0)} }
+  @keyframes pageIn    { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+  @keyframes fall      { 0%{transform:translateY(-40px) rotate(0deg);opacity:.9} 100%{transform:translateY(110vh) rotate(360deg);opacity:0} }
+  @keyframes burstFly  { 0%{transform:translate(0,0) scale(0) rotate(0deg);opacity:1} 60%{opacity:1} 100%{transform:translate(var(--tx),var(--ty)) scale(1.4) rotate(var(--rot));opacity:0} }
+
+  /* ── LOCK SCREEN ────────────────────────────────────────── */
+  #lock-screen {
+    position:fixed; inset:0; z-index:500;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    padding:30px 24px;
+    background:rgba(10,0,5,0.92);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+  }
+  .lock-icon {
+    font-size: 64px;
+    animation: heartbeat 1.8s ease-in-out infinite;
+    margin-bottom: 10px;
+    /* ensure emoji renders on all devices */
+    font-family: 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;
+    line-height: 1.2;
+  }
+  .lock-title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(20px, 5vw, 26px);
+    color: #ff6b8a;
+    text-align: center;
+    animation: glow 2.5s ease-in-out infinite;
+    margin-bottom: 6px;
+  }
+  .lock-sub {
+    font-family: 'Lato', sans-serif;
+    font-weight: 300;
+    font-size: clamp(13px, 3.5vw, 15px);
+    color: #f8bbd0;
+    text-align: center;
+    margin-bottom: 28px;
+    line-height: 1.7;
+  }
+  .pw-box {
+    background: rgba(80,0,30,0.6);
+    border: 1px solid rgba(255,107,138,0.5);
+    border-radius: 20px;
+    padding: 28px 24px;
+    width: 100%; max-width: 340px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(194,24,91,0.3);
+  }
+  .pw-box label {
+    display: block;
+    font-family: 'Lato', sans-serif;
+    color: #f8bbd0;
+    font-size: 14px;
+    margin-bottom: 12px;
+    letter-spacing: .3px;
+  }
+  .pw-input {
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 30px;
+    border: 2px solid rgba(255,107,138,0.5);
+    background: rgba(26,0,8,0.8);
+    color: #fff;
+    font-size: 20px;
+    font-family: 'Lato', sans-serif;
+    text-align: center;
+    letter-spacing: 4px;
+    outline: none;
+    margin-bottom: 16px;
+    transition: border-color .3s, box-shadow .3s;
+    /* prevent iOS zoom on focus */
+    font-size: max(16px, 18px);
+  }
+  .pw-input:focus { border-color:#ff6b8a; box-shadow:0 0 16px rgba(255,107,138,0.4); }
+  .pw-input.wrong { border-color:#ff4444; animation:shake .4s ease; }
+  .pw-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: 30px;
+    border: none;
+    background: linear-gradient(135deg,#c2185b,#e91e63);
+    color: #fff;
+    font-size: 17px;
+    font-family: 'Playfair Display', Georgia, serif;
+    cursor: pointer;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 20px rgba(233,30,99,0.6);
+    animation: bounce 2s ease-in-out infinite;
+    -webkit-appearance: none;
+  }
+  .pw-btn:active { transform:scale(0.97); }
+  .pw-hint  { font-family:'Lato',sans-serif; font-size:12px; color:rgba(248,187,208,0.5); margin-top:12px; }
+  .pw-error { font-family:'Lato',sans-serif; color:#ff6b8a; font-size:13px; margin-top:10px; display:none; animation:fadeIn .4s ease; }
+
+  /* ── UNLOCK OVERLAY ─────────────────────────────────────── */
+  #unlock-overlay {
+    position:fixed; inset:0; z-index:600;
+    pointer-events:none; display:none;
+    align-items:center; justify-content:center; flex-direction:column;
+  }
+  .unlock-msg {
+    font-family:'Playfair Display',Georgia,serif;
+    font-size: clamp(22px, 6vw, 28px);
+    color:#ff6b8a; text-align:center;
+    animation:glow 1.5s ease-in-out infinite;
+    z-index:601; padding:0 24px;
+    text-shadow:0 0 20px #ff6b8a;
+    line-height:1.5;
+  }
+  .burst-symbol {
+    position:fixed; pointer-events:none; z-index:602;
+    animation:burstFly ease-out forwards;
+    /* emoji font */
+    font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;
+  }
+
+  /* ── PAGES ──────────────────────────────────────────────── */
+  #main-content { display:none; }
+  .page {
+    display:none; min-height:100vh; width:100%;
+    padding: 20px 16px 120px;
+    position:relative; z-index:10;
+    animation:pageIn .8s ease;
+  }
+  .page.active { display:flex; flex-direction:column; align-items:center; }
+  .content { position:relative; z-index:10; width:100%; max-width:420px; }
+
+  /* ── CARDS ──────────────────────────────────────────────── */
+  .love-card {
+    background: rgba(80,0,30,.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border: 1px solid rgba(255,107,138,.45);
+    border-radius: 18px;
+    padding: 18px;
+    margin: 12px 0;
+    animation: slideUp .8s ease both;
+    box-shadow: 0 4px 24px rgba(194,24,91,.15), inset 0 0 20px rgba(255,107,138,.05);
+  }
+  .love-card h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+    color: #ff6b8a;
+    font-size: clamp(14px, 4vw, 16px);
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .love-card p {
+    font-family: 'Lato', sans-serif;
+    font-weight: 300;
+    color: #f8bbd0;
+    font-size: clamp(13px, 3.8vw, 15px);
+    line-height: 1.8;
+  }
+
+  /* ── TYPOGRAPHY ─────────────────────────────────────────── */
+  .title {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(22px, 6vw, 28px);
+    text-align: center;
+    color: #ff6b8a;
+    animation: glow 2.5s ease-in-out infinite;
+    line-height: 1.35;
+    margin: 10px 0;
+  }
+  .subtitle {
+    font-family: 'Lato', sans-serif;
+    font-weight: 300;
+    font-size: clamp(13px, 3.8vw, 15px);
+    text-align: center;
+    color: #f8bbd0;
+    line-height: 1.75;
+    margin: 14px 0;
+  }
+  .letter-line {
+    border-left: 3px solid #c2185b;
+    padding: 8px 14px;
+    margin: 10px 0;
+    color: #f8bbd0;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-size: clamp(13px, 3.5vw, 14px);
+    line-height: 1.85;
+  }
+  .divider { width:80px; height:2px; background:linear-gradient(90deg,transparent,#c2185b,transparent); margin:16px auto; }
+
+  /* ── EMOJI DECORATIONS ──────────────────────────────────── */
+  .sparkle-row { display:flex; justify-content:center; gap:14px; margin:10px 0; }
+  .tulip        { font-size:28px; animation:float 2.5s ease-in-out infinite; display:inline-block; font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif; }
+  .sparkle-star { font-size:22px; animation:sparkle 1.8s ease-in-out infinite; display:inline-block; font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif; }
+  .big-heart    { font-size:60px; animation:heartbeat 1.5s ease-in-out infinite; display:block; text-align:center; margin:20px 0; font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif; line-height:1.2; }
+  .confetti-burst { text-align:center; font-size:28px; letter-spacing:4px; animation:bounce 1s ease-in-out infinite; margin:14px 0; font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif; }
+
+  /* ── WISH GRID ──────────────────────────────────────────── */
+  .wish-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px; width:100%; margin:14px 0;
+  }
+  .wish-item {
+    background: rgba(100,0,35,.5);
+    border: 1px solid rgba(255,107,138,.35);
+    border-radius: 14px;
+    padding: 14px 10px;
+    text-align: center;
+    animation: float 3s ease-in-out infinite;
+    box-shadow: 0 2px 12px rgba(194,24,91,.2);
+  }
+  .wish-item:nth-child(2){animation-delay:.5s}
+  .wish-item:nth-child(3){animation-delay:1s}
+  .wish-item:nth-child(4){animation-delay:1.5s}
+  .wish-item:nth-child(5){animation-delay:.8s}
+  .wish-item:nth-child(6){animation-delay:1.3s}
+  .wish-icon {
+    font-size: 30px; margin-bottom: 6px;
+    font-family: 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;
+    line-height: 1.3;
+  }
+  .wish-text {
+    font-family: 'Lato', sans-serif;
+    font-weight: 300;
+    font-size: clamp(11px, 3vw, 12px);
+    color: #f8bbd0;
+    line-height: 1.5;
+  }
+
+  /* ── RING ───────────────────────────────────────────────── */
+  .ring-box { display:flex; flex-direction:column; align-items:center; margin:24px 0; }
+  .ring {
+    width:110px; height:110px; border-radius:50%;
+    border:6px solid #f8bbd0; position:relative;
+    animation:ring-pulse 2s ease-in-out infinite;
+    background:radial-gradient(circle at 35% 35%,#fff8e1,#ffd54f);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 30px rgba(255,213,79,.4);
+    font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;
+    font-size:44px;
+    line-height: 1;
+  }
+  .ring-shine { position:absolute; top:12px; left:20px; width:22px; height:22px; border-radius:50%; background:rgba(255,255,255,.65); }
+
+  /* ── PROPOSAL ───────────────────────────────────────────── */
+  .proposal-text {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-size: clamp(18px, 5vw, 22px);
+    color:#ff6b8a; text-align:center;
+    animation:glow 2s ease-in-out infinite;
+    margin:16px 0; line-height:1.4;
+  }
+  .yes-btn {
+    background:linear-gradient(135deg,#c2185b,#e91e63);
+    border:none; color:#fff;
+    padding:16px 48px;
+    border-radius:30px;
+    font-size: clamp(16px, 4.5vw, 20px);
+    cursor:pointer;
+    font-family:'Playfair Display',Georgia,serif;
+    animation:bounce 1.5s ease-in-out infinite;
+    box-shadow:0 4px 30px rgba(233,30,99,.6);
+    margin:12px; letter-spacing:1px;
+    -webkit-appearance:none;
+    touch-action: manipulation;
+  }
+  .yes-btn:active { transform:scale(.95); }
+  #yes-msg {
+    display:none;
+    background:rgba(80,0,30,.6);
+    border:2px solid #ff6b8a;
+    border-radius:18px;
+    padding:20px; margin-top:16px;
+    animation:slideUp .6s ease;
+    text-align:center;
+    font-family:'Lato',sans-serif;
+    font-weight:300;
+    color:#f8bbd0;
+    font-size: clamp(13px, 3.8vw, 15px);
+    line-height:1.85;
+  }
+  #yes-msg strong {
+    font-family:'Playfair Display',Georgia,serif;
+    color:#ff6b8a;
+    font-size: clamp(16px, 4.5vw, 18px);
+  }
+
+  /* ── NAV ────────────────────────────────────────────────── */
+  .nav-buttons {
+    position:fixed; bottom:0; left:0; right:0; z-index:200;
+    display:flex; justify-content:center;
+    gap:6px; padding:10px 10px;
+    background:rgba(20,0,8,.97);
+    border-top:1px solid rgba(255,107,138,.35);
+    flex-wrap:wrap;
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    /* safe area for iPhone home bar */
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+  }
+  .nav-btn {
+    background:linear-gradient(135deg,#7b0028,#c2185b);
+    border:none; color:#fff;
+    padding:9px 12px;
+    border-radius:20px;
+    font-size: clamp(11px, 3vw, 13px);
+    cursor:pointer;
+    font-family:'Lato',sans-serif;
+    font-weight:400;
+    transition:transform .2s,box-shadow .2s;
+    box-shadow:0 2px 12px rgba(194,24,91,.4);
+    white-space:nowrap;
+    -webkit-appearance:none;
+    touch-action: manipulation;
+  }
+  .nav-btn:active { transform:scale(.93); }
+  .nav-btn.current {
+    background:linear-gradient(135deg,#c2185b,#e91e63);
+    box-shadow:0 2px 24px rgba(233,30,99,.8);
+  }
+  .fall-symbol {
+    position:fixed; top:-40px; pointer-events:none; z-index:2;
+    animation:fall linear infinite;
+    font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;
+  }
+</style>
+</head>
+<body>
+
+<div class="bg-gradient"></div>
+<canvas id="love-bg"></canvas>
+
+<!-- ═══════════════════ LOCK SCREEN ═══════════════════ -->
+<div id="lock-screen">
+  <div class="lock-icon">🔐</div>
+  <h1 class="lock-title">This is only for BUBU 🌹</h1>
+  <p class="lock-sub">Someone made this with all his love<br>just for you 💗<br>Enter the secret password to open it</p>
+  <div class="pw-box">
+    <label><span class="e">🌷</span> Enter your secret password <span class="e">🌷</span></label>
+    <input class="pw-input" id="pw-input" type="password" placeholder="••••••" maxlength="20"
+           onkeydown="if(event.key==='Enter')checkPw()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <button class="pw-btn" onclick="checkPw()">Open with Love <span class="e">💗</span></button>
+    <div class="pw-error" id="pw-error"><span class="e">❌</span> Wrong password, try again BUBU <span class="e">🥺</span></div>
+    <p class="pw-hint">Hint: the name of the person who loves you most <span class="e">🥰</span></p>
+  </div>
+</div>
+
+<!-- ═══════════════════ UNLOCK OVERLAY ═══════════════════ -->
+<div id="unlock-overlay">
+  <div class="unlock-msg">BUBU you got it! <span class="e">💗</span><br>Welcome to your love pages <span class="e">🌷</span></div>
+</div>
+
+<!-- ═══════════════════ MAIN CONTENT ═══════════════════ -->
+<div id="main-content">
+
+  <!-- PAGE: For You -->
+  <div class="page active" id="page7">
+    <div class="content">
+      <div class="sparkle-row">
+        <span class="sparkle-star e">✨</span>
+        <span class="sparkle-star e" style="animation-delay:.4s">✨</span>
+        <span class="sparkle-star e" style="animation-delay:.8s">✨</span>
+      </div>
+      <div class="tulip e" style="text-align:center;display:block">🌷</div>
+      <h1 class="title">For My BUBU <span class="e">🌹</span></h1>
+      <div class="divider"></div>
+      <div class="sparkle-row">
+        <span class="tulip e" style="font-size:20px">🌷</span>
+        <span class="big-heart e" style="font-size:40px;margin:0;display:inline-block">🤍</span>
+        <span class="tulip e" style="font-size:20px;animation-delay:1s">🌷</span>
+      </div>
+      <div class="love-card" style="animation-delay:.2s">
+        <h3><span class="e">✉️</span> A letter from my heart</h3>
+        <div class="letter-line">Hey BUBU... I know today feels heavy. Your body is going through so much and I wish I could take all that pain away from you.</div>
+        <div class="letter-line">But I want you to know — on your hardest days, you are still the most beautiful, most precious thing in my entire world.</div>
+        <div class="letter-line">I love you not just on your happy days. I love you on these days too. Especially on these days. <span class="e">💗</span></div>
+      </div>
+      <div class="love-card" style="animation-delay:.4s">
+        <h3><span class="e">🌷</span> You are my tulip</h3>
+        <p>Just like your favourite flowers — you bloom in every season. You are delicate and strong at the same time. You make every place more beautiful just by being there.</p>
+      </div>
+      <div class="love-card" style="animation-delay:.6s">
+        <h3><span class="e">🫂</span> Right now I just want to...</h3>
+        <p>Hold you tight, give you the warmest hug, sit beside you, and not say a single word. Just be there. Because that's where I belong. Right next to you, BUBU. <span class="e">💞</span></p>
+      </div>
+      <div class="divider"></div>
+      <div class="sparkle-row">
+        <span class="sparkle-star e">💗</span>
+        <span class="sparkle-star e" style="animation-delay:.6s">🌷</span>
+        <span class="sparkle-star e" style="animation-delay:1.2s">💗</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: Our Dreams -->
+  <div class="page" id="page8">
+    <div class="content">
+      <span class="big-heart e">🌹</span>
+      <h1 class="title">Things I Dream of With You</h1>
+      <p class="subtitle">Every single one — I want to do with YOU, BUBU <span class="e">💕</span></p>
+      <div class="divider"></div>
+      <div class="wish-grid">
+        <div class="wish-item"><div class="wish-icon e">🍦</div><div class="wish-text">Eating ice cream together at midnight, laughing about nothing <span class="e">🤍</span></div></div>
+        <div class="wish-item"><div class="wish-icon e">📺</div><div class="wish-text">Watching Kdrama side by side, crying at the same scenes <span class="e">💕</span></div></div>
+        <div class="wish-item"><div class="wish-icon e">🎬</div><div class="wish-text">Making cute romantic reels together, just us two <span class="e">🌹</span></div></div>
+        <div class="wish-item"><div class="wish-icon e">👗</div><div class="wish-text">Wearing matching outfits and walking like we own the world <span class="e">💫</span></div></div>
+        <div class="wish-item"><div class="wish-icon e">🥟</div><div class="wish-text">Eating hotpot together on cold nights, fingers warm <span class="e">🌶️</span></div></div>
+        <div class="wish-item"><div class="wish-icon e">🌷</div><div class="wish-text">Buying you tulips every time I see them, watching your eyes shine <span class="e">✨</span></div></div>
+      </div>
+      <div class="love-card" style="margin-top:8px">
+        <h3><span class="e">🤗</span> And most of all...</h3>
+        <p>Endless hugs. The kind where time stops. Kisses on your forehead. Holding your hand everywhere we go. That's all I need, BUBU. Just you. <span class="e">🌸</span></p>
+      </div>
+      <div class="confetti-burst e">🌷💗🌷💗🌷</div>
+    </div>
+  </div>
+
+  <!-- PAGE: So Lucky -->
+  <div class="page" id="page9">
+    <div class="content">
+      <div class="sparkle-row">
+        <span class="sparkle-star e">⭐</span>
+        <span class="sparkle-star e" style="animation-delay:.5s">✨</span>
+        <span class="sparkle-star e" style="animation-delay:1s">⭐</span>
+      </div>
+      <h1 class="title">I Am The Luckiest</h1>
+      <div class="big-heart e" style="font-size:64px">🍀</div>
+      <p class="subtitle">Out of every person in this world... somehow, you chose me. And I will never stop being grateful for that. <span class="e">🌹</span></p>
+      <div class="divider"></div>
+      <div class="love-card" style="animation-delay:.2s">
+        <h3><span class="e">💫</span> Lucky because...</h3>
+        <div class="letter-line">I get to see your face and that alone makes my whole day better.</div>
+        <div class="letter-line">I get to be the one you share your feelings with. The one you're real with.</div>
+        <div class="letter-line">I get to love someone as pure, as caring, as beautifully YOU as BUBU.</div>
+      </div>
+      <div class="love-card" style="animation-delay:.4s">
+        <h3><span class="e">🌷</span> What makes you special</h3>
+        <p>You are not just my girlfriend. You are my peace. My calm. My home. Wherever you are, that's where I want to be. Always. <span class="e">💗</span></p>
+      </div>
+      <div class="love-card" style="animation-delay:.6s">
+        <h3><span class="e">🫀</span> What I promise you</h3>
+        <p>Through your hard days and bright days — I'm not going anywhere. I choose you every single day. Even on the days you don't feel like you. Especially those days. <span class="e">🌹</span></p>
+      </div>
+      <div class="sparkle-row" style="margin-top:8px">
+        <span class="tulip e">🌷</span>
+        <span class="e" style="font-size:24px;animation:heartbeat 1.5s ease-in-out infinite;display:inline-block">💗</span>
+        <span class="tulip e" style="animation-delay:.7s">🌷</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: Special (Proposal) -->
+  <div class="page" id="page10">
+    <div class="content">
+      <div class="sparkle-row">
+        <span class="sparkle-star e">✨</span>
+        <span class="sparkle-star e" style="animation-delay:.4s">💍</span>
+        <span class="sparkle-star e" style="animation-delay:.8s">✨</span>
+      </div>
+      <h1 class="title" style="font-size:clamp(18px,5vw,24px)">BUBU... I Have Something To Say <span class="e">🌹</span></h1>
+      <div class="divider"></div>
+      <div class="ring-box">
+        <div class="ring">💍<div class="ring-shine"></div></div>
+      </div>
+      <div class="love-card" style="animation-delay:.2s;border-color:rgba(255,213,79,.5)">
+        <h3 style="color:#ffd54f"><span class="e">💌</span> From the deepest part of me...</h3>
+        <div class="letter-line">BUBU, from the moment you came into my life, everything changed. The world became warmer. Days became softer. I became better — because of you.</div>
+        <div class="letter-line">You are my tulip in a world full of ordinary flowers. My Kdrama, my ice cream nights, my everything.</div>
+        <div class="letter-line">I don't want to imagine any future without your hugs, your laugh, your matching outfit beside mine.</div>
+      </div>
+      <p class="proposal-text">"So BUBU... will you be mine? Forever? <span class="e">🌷💍</span>"</p>
+      <div style="text-align:center;margin:16px 0">
+        <button class="yes-btn" onclick="sayYes()">Yes, always yours <span class="e">💗</span></button>
+      </div>
+      <div id="yes-msg">
+        <div class="e" style="font-size:36px;animation:heartbeat 1s ease-in-out infinite;display:block;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif">💗🌷💗</div><br>
+        <strong>SHE SAID YES!!! <span class="e">🎉🌹</span></strong><br><br>
+        BUBU, you just made me the happiest person alive. I love you so so so much. Today, tomorrow and every day after. You are MINE and I am YOURS. Forever. <span class="e">🌷💍✨</span><br><br>
+        <div class="confetti-burst e">🌷💗🌷💗🌷💗🌷</div>
+      </div>
+      <div class="sparkle-row" style="margin-top:12px">
+        <span class="sparkle-star e">✨</span>
+        <span class="sparkle-star e" style="animation-delay:.5s">🌹</span>
+        <span class="sparkle-star e" style="animation-delay:1s">✨</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="nav-buttons">
+    <button class="nav-btn current" id="btn7" onclick="goTo(7)"><span class="e">🌷</span> For You</button>
+    <button class="nav-btn" id="btn8" onclick="goTo(8)"><span class="e">💫</span> Dreams</button>
+    <button class="nav-btn" id="btn9" onclick="goTo(9)"><span class="e">🍀</span> Lucky</button>
+    <button class="nav-btn" id="btn10" onclick="goTo(10)"><span class="e">💍</span> Special</button>
+  </div>
+</div>
+
+<script>
+/* ── CANVAS BACKGROUND ─────────────────────────────────────
+   Key fix: use 'Apple Color Emoji' etc. in canvas font string
+   so Android/iOS renders real emoji instead of CJK boxes.    */
+const canvas = document.getElementById('love-bg');
+const ctx = canvas.getContext('2d');
+function resize(){ canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+resize();
+window.addEventListener('resize', resize);
+
+/* Symbol alternatives that don't need emoji font on canvas
+   (text symbols render reliably everywhere) */
+const SYMS = ['♥','❤','♡','✿','❀','✦','⁕'];
+const COLS = ['rgba(255,107,138,','rgba(194,24,91,','rgba(233,30,99,','rgba(248,187,208,','rgba(255,167,192,'];
+const particles = [];
+for(let i=0;i<80;i++) particles.push({
+  x: Math.random()*window.innerWidth, y: Math.random()*window.innerHeight,
+  size: 6+Math.random()*22, speed: .2+Math.random()*.7,
+  drift: (Math.random()-.5)*.4,
+  sym: SYMS[Math.floor(Math.random()*SYMS.length)],
+  col: COLS[Math.floor(Math.random()*COLS.length)],
+  alpha: .04+Math.random()*.18, phase: Math.random()*Math.PI*2,
+  rot: (Math.random()-.5)*.02, angle: 0
+});
+function drawFrame(ts){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const t = ts*.001;
+  particles.forEach(p=>{
+    p.y -= p.speed; p.x += p.drift+Math.sin(t+p.phase)*.3; p.angle += p.rot;
+    if(p.y < -40){ p.y=canvas.height+20; p.x=Math.random()*canvas.width; }
+    if(p.x < -40) p.x = canvas.width+20;
+    if(p.x > canvas.width+40) p.x = -20;
+    const pulse = .7+.3*Math.sin(t*1.5+p.phase);
+    ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.angle);
+    ctx.globalAlpha = p.alpha*pulse;
+    /* Use text-symbol font (no emoji) for canvas — reliable on all devices */
+    ctx.font = p.size+'px serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle = p.col+p.alpha*pulse+')';
+    ctx.fillText(p.sym,0,0);
+    ctx.restore();
+  });
+  requestAnimationFrame(drawFrame);
+}
+requestAnimationFrame(drawFrame);
+
+/* ── PASSWORD ──────────────────────────────────────────── */
+const CORRECT = 'Ahsan';
+function checkPw(){
+  const val = document.getElementById('pw-input').value.trim();
+  if(val === CORRECT){ unlockApp(); }
+  else {
+    const inp = document.getElementById('pw-input');
+    inp.classList.add('wrong');
+    document.getElementById('pw-error').style.display='block';
+    setTimeout(()=>inp.classList.remove('wrong'),500);
+    inp.value='';
+  }
+}
+
+function unlockApp(){
+  const ov = document.getElementById('unlock-overlay');
+  ov.style.display='flex';
+  /* Use DOM emoji (rendered by browser, always correct) for burst */
+  const syms=['💗','🌷','🌹','✨','💍','🥰','💕','❤️','🌸','⭐'];
+  const cx=window.innerWidth/2, cy=window.innerHeight/2;
+  for(let i=0;i<60;i++){
+    setTimeout(()=>{
+      const el=document.createElement('div');
+      el.className='burst-symbol';
+      const angle=Math.random()*Math.PI*2;
+      const dist=100+Math.random()*250;
+      el.style.left=cx+'px'; el.style.top=cy+'px';
+      el.style.setProperty('--tx',(Math.cos(angle)*dist)+'px');
+      el.style.setProperty('--ty',(Math.sin(angle)*dist)+'px');
+      el.style.setProperty('--rot',(Math.random()*360)+'deg');
+      el.style.animationDuration=(.8+Math.random()*.8)+'s';
+      el.style.fontSize=(16+Math.random()*20)+'px';
+      el.textContent=syms[Math.floor(Math.random()*syms.length)];
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),2000);
+    },i*30);
+  }
+  setTimeout(()=>{
+    ov.style.display='none';
+    document.getElementById('lock-screen').style.display='none';
+    document.getElementById('main-content').style.display='block';
+  },2500);
+}
+
+/* ── NAVIGATION ────────────────────────────────────────── */
+function goTo(n){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('current'));
+  document.getElementById('page'+n).classList.add('active');
+  document.getElementById('btn'+n).classList.add('current');
+  window.scrollTo(0,0);
+}
+
+/* ── PROPOSAL YES ──────────────────────────────────────── */
+function sayYes(){
+  document.getElementById('yes-msg').style.display='block';
+  document.querySelector('.yes-btn').style.display='none';
+  const s=['💗','🌷','🌹','✨','💍','🥰','💕'];
+  for(let i=0;i<40;i++){
+    setTimeout(()=>{
+      const el=document.createElement('div');
+      el.className='fall-symbol';
+      el.style.left=Math.random()*100+'vw';
+      el.style.fontSize=(14+Math.random()*18)+'px';
+      el.style.animationDuration=(2+Math.random()*3)+'s';
+      el.textContent=s[Math.floor(Math.random()*s.length)];
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),5000);
+    },i*80);
+  }
+}
+
+/* ── TAP LOVE MESSAGE ──────────────────────────────────── */
+const LOVE_MSGS = [
+  'I love you, wifey 💗',
+  'I love you, honey 🍯',
+  'I love you, baby 🌹',
+  'I love you, moon 🌙',
+  'I love you, soulmate 💞',
+  'I love you, sunshine ☀️'
+];
+
+/* Inject styles for the floating message */
+const loveStyle = document.createElement('style');
+loveStyle.textContent = `
+  .love-tap {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    font-family: 'Playfair Display', Georgia, serif;
+    font-style: italic;
+    font-size: clamp(16px, 4.5vw, 20px);
+    color: #ff6b8a;
+    text-shadow: 0 0 12px rgba(255,107,138,0.8), 0 0 24px rgba(194,24,91,0.5);
+    white-space: nowrap;
+    animation: lovePop 1.8s ease forwards;
+    transform: translateX(-50%);
+    user-select: none;
+  }
+  @keyframes lovePop {
+    0%   { opacity: 0; transform: translateX(-50%) translateY(0px) scale(0.6); }
+    20%  { opacity: 1; transform: translateX(-50%) translateY(-10px) scale(1.1); }
+    50%  { opacity: 1; transform: translateX(-50%) translateY(-28px) scale(1); }
+    100% { opacity: 0; transform: translateX(-50%) translateY(-70px) scale(0.9); }
+  }
+`;
+document.head.appendChild(loveStyle);
+
+let lastMsgIdx = -1;
+document.addEventListener('click', handleTap);
+document.addEventListener('touchstart', handleTap, { passive: true });
+
+function handleTap(e) {
+  /* Don't fire on buttons/inputs */
+  const tag = (e.target || e.srcElement).tagName;
+  if (['BUTTON','INPUT','A'].includes(tag)) return;
+
+  /* Pick a random message (never repeat the same one twice in a row) */
+  let idx;
+  do { idx = Math.floor(Math.random() * LOVE_MSGS.length); } while (idx === lastMsgIdx);
+  lastMsgIdx = idx;
+
+  /* Position at tap point */
+  const x = e.touches ? e.touches[0].clientX : e.clientX;
+  const y = e.touches ? e.touches[0].clientY : e.clientY;
+
+  const el = document.createElement('div');
+  el.className = 'love-tap';
+  el.textContent = LOVE_MSGS[idx];
+  el.style.left = x + 'px';
+  el.style.top  = y + 'px';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1900);
+}
+</script>
+</body>
+</html>
