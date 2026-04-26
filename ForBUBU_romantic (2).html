@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>For BUBU 🌹</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+
+<style>
+/* ── PALETTE from the painting ─────────────────────────────
+   --blush:      #e8a0a8   dusty rose / petal pink
+   --rose:       #c9697a   deeper rose
+   --cream:      #f5ede0   warm ivory (dress)
+   --gold:       #c9a96e   champagne / armor gold
+   --gold-light: #e8d5aa   pale gold
+   --sage:       #7a9a7a   garden sage green
+   --sage-light: #a8c4a0   soft leaf green
+   --sky:        #b8c8d8   muted dusty blue sky
+   --parchment:  #2a1f14   deep warm brown (background)
+   --mid:        #3d2a1a   mid brown
+   --warm-dark:  #1e1508   darkest warm brown
+*/
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+.e {
+  font-family: 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji','Twemoji Mozilla','EmojiOne Color','Android Emoji', sans-serif !important;
+  font-style: normal; display: inline-block;
+}
+
+body, input, button {
+  font-family: 'Cormorant Garamond', Georgia, serif,
+    'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;
+}
+
+html { height: 100%; }
+body {
+  background: #1e1508;
+  color: #f5ede0;
+  overflow-x: hidden;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── BACKGROUND ─────────────────────────────────────────── */
+.bg-gradient {
+  position: fixed; inset: 0; z-index: 0;
+  animation: bgPulse 7s ease-in-out infinite;
+}
+@keyframes bgPulse {
+  0%,100%{ background: radial-gradient(ellipse at 20% 30%, #3d2a1a 0%, #1e1508 40%, #2a1f14 70%, #1e1508 100%); }
+  33%    { background: radial-gradient(ellipse at 80% 20%, #32200e 0%, #1e1508 40%, #3d2a1a 70%, #1e1508 100%); }
+  66%    { background: radial-gradient(ellipse at 50% 80%, #1a2010 0%, #1e1508 40%, #2d1f10 70%, #1e1508 100%); }
+}
+
+/* Soft vignette texture overlay */
+.vignette {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(10,7,3,0.6) 100%);
+}
+
+canvas#love-bg { position:fixed; inset:0; width:100%; height:100%; z-index:1; pointer-events:none; }
+
+/* ── ANIMATIONS ─────────────────────────────────────────── */
+@keyframes heartbeat  { 0%,100%{transform:scale(1)} 50%{transform:scale(1.12)} }
+@keyframes glow       { 0%,100%{text-shadow:0 0 12px rgba(201,169,110,.7),0 0 24px rgba(201,105,122,.4)} 50%{text-shadow:0 0 20px rgba(201,169,110,.9),0 0 40px rgba(232,160,168,.6),0 0 60px rgba(201,105,122,.3)} }
+@keyframes goldGlow   { 0%,100%{text-shadow:0 0 10px rgba(201,169,110,.6)} 50%{text-shadow:0 0 22px rgba(201,169,110,.9),0 0 40px rgba(232,213,170,.5)} }
+@keyframes bounce     { 0%,100%{transform:scale(1)} 50%{transform:scale(1.04)} }
+@keyframes shake      { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-8px)} 75%{transform:translateX(8px)} }
+@keyframes fadeIn     { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+@keyframes float      { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+@keyframes sparkle    { 0%,100%{opacity:0;transform:scale(0)} 50%{opacity:1;transform:scale(1)} }
+@keyframes slideUp    { from{opacity:0;transform:translateY(30px)} to{opacity:1;transform:translateY(0)} }
+@keyframes ring-pulse { 0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(201,169,110,.6)} 50%{transform:scale(1.05);box-shadow:0 0 0 18px rgba(201,169,110,0)} }
+@keyframes pageIn     { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+@keyframes fall       { 0%{transform:translateY(-40px) rotate(0deg);opacity:.9} 100%{transform:translateY(110vh) rotate(360deg);opacity:0} }
+@keyframes burstFly   { 0%{transform:translate(0,0) scale(0) rotate(0deg);opacity:1} 60%{opacity:1} 100%{transform:translate(var(--tx),var(--ty)) scale(1.4) rotate(var(--rot));opacity:0} }
+@keyframes petalSway  { 0%,100%{transform:rotate(-3deg)} 50%{transform:rotate(3deg)} }
+
+/* ── LOCK SCREEN ─────────────────────────────────────────── */
+#lock-screen {
+  position:fixed; inset:0; z-index:500;
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  padding:30px 24px;
+  background: rgba(18, 11, 4, 0.93);
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+
+/* Decorative corner flourishes */
+#lock-screen::before, #lock-screen::after {
+  content: '✦';
+  position: absolute;
+  font-size: 60px;
+  color: rgba(201,169,110,0.12);
+  font-family: serif;
+}
+#lock-screen::before { top: 20px; left: 20px; }
+#lock-screen::after  { bottom: 20px; right: 20px; }
+
+.lock-icon {
+  font-size: 60px;
+  animation: heartbeat 1.8s ease-in-out infinite;
+  margin-bottom: 12px;
+  font-family: 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;
+  line-height: 1.2;
+}
+.lock-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(22px, 5.5vw, 28px);
+  font-weight: 600;
+  color: #c9a96e;
+  text-align: center;
+  animation: goldGlow 2.5s ease-in-out infinite;
+  margin-bottom: 8px;
+  letter-spacing: 0.5px;
+}
+.lock-sub {
+  font-family: 'Lato', sans-serif;
+  font-weight: 300;
+  font-size: clamp(13px, 3.5vw, 15px);
+  color: #d4b896;
+  text-align: center;
+  margin-bottom: 28px;
+  line-height: 1.8;
+}
+
+/* Ornamental divider */
+.ornament {
+  display: flex; align-items: center; gap: 10px;
+  color: rgba(201,169,110,0.5);
+  font-size: 13px;
+  margin: 10px 0 18px;
+  letter-spacing: 3px;
+}
+.ornament::before, .ornament::after {
+  content: '';
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201,169,110,0.4), transparent);
+}
+
+.pw-box {
+  background: rgba(42, 31, 20, 0.7);
+  border: 1px solid rgba(201,169,110,0.35);
+  border-radius: 20px;
+  padding: 28px 24px;
+  width: 100%; max-width: 340px;
+  text-align: center;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(201,169,110,0.15);
+}
+.pw-box label {
+  display: block;
+  font-family: 'Lato', sans-serif;
+  font-weight: 300;
+  color: #d4b896;
+  font-size: 14px;
+  margin-bottom: 14px;
+  letter-spacing: .3px;
+}
+.pw-input {
+  width: 100%;
+  padding: 13px 18px;
+  border-radius: 30px;
+  border: 1.5px solid rgba(201,169,110,0.4);
+  background: rgba(18,11,4,0.6);
+  color: #f5ede0;
+  font-family: 'Lato', sans-serif;
+  text-align: center;
+  letter-spacing: 4px;
+  outline: none;
+  margin-bottom: 16px;
+  transition: border-color .3s, box-shadow .3s;
+  font-size: max(16px, 18px);
+}
+.pw-input:focus { border-color:#c9a96e; box-shadow:0 0 16px rgba(201,169,110,0.25); }
+.pw-input.wrong { border-color:#c97a7a; animation:shake .4s ease; }
+.pw-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 30px;
+  border: 1px solid rgba(201,169,110,0.5);
+  background: linear-gradient(135deg, #7a4a2a, #a06030, #c9a96e);
+  color: #f5ede0;
+  font-size: 17px;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  animation: bounce 2.2s ease-in-out infinite;
+  -webkit-appearance: none;
+}
+.pw-btn:active { transform:scale(0.97); }
+.pw-hint  { font-family:'Lato',sans-serif; font-size:12px; color:rgba(212,184,150,0.45); margin-top:12px; }
+.pw-error { font-family:'Lato',sans-serif; color:#c97a7a; font-size:13px; margin-top:10px; display:none; animation:fadeIn .4s ease; }
+
+/* ── UNLOCK OVERLAY ─────────────────────────────────────── */
+#unlock-overlay {
+  position:fixed; inset:0; z-index:600;
+  pointer-events:none; display:none;
+  align-items:center; justify-content:center; flex-direction:column;
+}
+.unlock-msg {
+  font-family:'Cormorant Garamond',Georgia,serif;
+  font-size: clamp(22px, 6vw, 30px);
+  font-weight: 600;
+  color:#c9a96e; text-align:center;
+  animation:goldGlow 1.5s ease-in-out infinite;
+  z-index:601; padding:0 24px;
+  line-height:1.5;
+}
+.burst-symbol {
+  position:fixed; pointer-events:none; z-index:602;
+  animation:burstFly ease-out forwards;
+  font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;
+}
+
+/* ── PAGES ──────────────────────────────────────────────── */
+#main-content { display:none; }
+.page {
+  display:none; min-height:100vh; width:100%;
+  padding: 20px 16px 120px;
+  position:relative; z-index:10;
+  animation:pageIn .8s ease;
+}
+.page.active { display:flex; flex-direction:column; align-items:center; }
+.content { position:relative; z-index:10; width:100%; max-width:420px; }
+
+/* ── CARDS ──────────────────────────────────────────────── */
+.love-card {
+  background: rgba(42, 28, 16, 0.65);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(201,169,110,0.28);
+  border-radius: 18px;
+  padding: 20px 18px;
+  margin: 12px 0;
+  animation: slideUp .8s ease both;
+  box-shadow: 0 4px 28px rgba(0,0,0,0.3), inset 0 1px 0 rgba(201,169,110,0.1);
+}
+/* Top accent line on cards */
+.love-card::before {
+  content: '';
+  display: block;
+  width: 40px; height: 1.5px;
+  background: linear-gradient(90deg, #c9a96e, #e8a0a8);
+  margin-bottom: 12px;
+  border-radius: 2px;
+}
+.love-card h3 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  color: #c9a96e;
+  font-size: clamp(15px, 4vw, 17px);
+  margin-bottom: 10px;
+  font-weight: 600;
+  font-style: italic;
+  letter-spacing: 0.3px;
+}
+.love-card p {
+  font-family: 'Lato', sans-serif;
+  font-weight: 300;
+  color: #d4b896;
+  font-size: clamp(13px, 3.8vw, 15px);
+  line-height: 1.85;
+}
+
+/* ── TYPOGRAPHY ─────────────────────────────────────────── */
+.title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(24px, 6.5vw, 32px);
+  font-weight: 600;
+  text-align: center;
+  color: #c9a96e;
+  animation: goldGlow 3s ease-in-out infinite;
+  line-height: 1.3;
+  margin: 10px 0;
+  letter-spacing: 0.5px;
+}
+.subtitle {
+  font-family: 'Lato', sans-serif;
+  font-weight: 300;
+  font-size: clamp(13px, 3.8vw, 15px);
+  text-align: center;
+  color: #d4b896;
+  line-height: 1.8;
+  margin: 14px 0;
+}
+.letter-line {
+  border-left: 2px solid rgba(201,169,110,0.5);
+  padding: 8px 14px;
+  margin: 10px 0;
+  color: #d4b896;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: clamp(14px, 3.8vw, 16px);
+  line-height: 1.9;
+}
+.divider {
+  display: flex; align-items: center; gap: 10px;
+  margin: 18px auto; width: fit-content;
+  color: rgba(201,169,110,0.5);
+  font-size: 11px; letter-spacing: 4px;
+}
+.divider::before, .divider::after {
+  content: '';
+  width: 40px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201,169,110,0.4));
+}
+.divider::after { background: linear-gradient(90deg, rgba(201,169,110,0.4), transparent); }
+
+/* ── EMOJI DECORATIONS ──────────────────────────────────── */
+.sparkle-row  { display:flex; justify-content:center; gap:14px; margin:10px 0; }
+.tulip        { font-size:28px; animation:float 3s ease-in-out infinite; display:inline-block; font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif; }
+.sparkle-star { font-size:20px; animation:sparkle 2s ease-in-out infinite; display:inline-block; font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif; }
+.big-heart    { font-size:60px; animation:heartbeat 1.8s ease-in-out infinite; display:block; text-align:center; margin:18px 0; font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif; line-height:1.2; }
+.confetti-burst { text-align:center; font-size:26px; letter-spacing:6px; animation:bounce 1.2s ease-in-out infinite; margin:14px 0; font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif; }
+
+/* ── WISH GRID ──────────────────────────────────────────── */
+.wish-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px; width:100%; margin:14px 0;
+}
+.wish-item {
+  background: rgba(42, 28, 16, 0.6);
+  border: 1px solid rgba(201,169,110,0.22);
+  border-radius: 16px;
+  padding: 16px 10px;
+  text-align: center;
+  animation: float 3s ease-in-out infinite;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.25);
+  position: relative; overflow: hidden;
+}
+/* Subtle warm shimmer top */
+.wish-item::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(201,169,110,0.4), transparent);
+}
+.wish-item:nth-child(2){animation-delay:.5s}
+.wish-item:nth-child(3){animation-delay:1s}
+.wish-item:nth-child(4){animation-delay:1.5s}
+.wish-item:nth-child(5){animation-delay:.8s}
+.wish-item:nth-child(6){animation-delay:1.3s}
+.wish-icon {
+  font-size: 30px; margin-bottom: 8px;
+  font-family: 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;
+  line-height: 1.3;
+}
+.wish-text {
+  font-family: 'Lato', sans-serif;
+  font-weight: 300;
+  font-size: clamp(11px, 3vw, 12px);
+  color: #d4b896;
+  line-height: 1.55;
+}
+
+/* ── RING ───────────────────────────────────────────────── */
+.ring-box { display:flex; flex-direction:column; align-items:center; margin:24px 0; }
+.ring {
+  width: 120px; height: 120px; border-radius: 50%;
+  border: 4px solid rgba(201,169,110,0.7);
+  position: relative;
+  animation: ring-pulse 2.2s ease-in-out infinite;
+  background: radial-gradient(circle at 35% 35%, #fff8e8, #e8d5aa, #c9a96e);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 30px rgba(201,169,110,0.35), 0 0 60px rgba(201,169,110,0.15);
+  font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;
+  font-size: 48px;
+  line-height: 1;
+}
+.ring-shine { position:absolute; top:14px; left:22px; width:20px; height:20px; border-radius:50%; background:rgba(255,255,255,0.7); }
+
+/* ── PROPOSAL ───────────────────────────────────────────── */
+.proposal-text {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-weight: 600;
+  font-size: clamp(19px, 5vw, 24px);
+  color: #c9a96e;
+  text-align: center;
+  animation: goldGlow 2.2s ease-in-out infinite;
+  margin: 18px 0; line-height: 1.45;
+}
+.yes-btn {
+  background: linear-gradient(135deg, #7a4a2a, #a06030, #c9a96e);
+  border: 1px solid rgba(201,169,110,0.5);
+  color: #f5ede0;
+  padding: 16px 44px;
+  border-radius: 30px;
+  font-size: clamp(16px, 4.5vw, 19px);
+  cursor: pointer;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 600;
+  animation: bounce 1.6s ease-in-out infinite;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+  margin: 12px;
+  letter-spacing: 1px;
+  -webkit-appearance: none;
+  touch-action: manipulation;
+}
+.yes-btn:active { transform:scale(.95); }
+#yes-msg {
+  display: none;
+  background: rgba(42,28,16,0.7);
+  border: 1.5px solid rgba(201,169,110,0.45);
+  border-radius: 18px;
+  padding: 22px 18px; margin-top: 16px;
+  animation: slideUp .6s ease;
+  text-align: center;
+  font-family: 'Lato', sans-serif;
+  font-weight: 300;
+  color: #d4b896;
+  font-size: clamp(13px, 3.8vw, 15px);
+  line-height: 1.9;
+}
+#yes-msg strong {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  color: #c9a96e;
+  font-size: clamp(17px, 4.5vw, 20px);
+  font-weight: 600;
+}
+
+/* ── NAV ────────────────────────────────────────────────── */
+.nav-buttons {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+  display: flex; justify-content: center;
+  gap: 6px; padding: 10px 10px;
+  background: rgba(18,11,4,0.97);
+  border-top: 1px solid rgba(201,169,110,0.2);
+  flex-wrap: wrap;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding-bottom: max(10px, env(safe-area-inset-bottom));
+}
+.nav-btn {
+  background: rgba(42,28,16,0.8);
+  border: 1px solid rgba(201,169,110,0.3);
+  color: #d4b896;
+  padding: 9px 14px;
+  border-radius: 20px;
+  font-size: clamp(11px, 3vw, 13px);
+  cursor: pointer;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 400;
+  font-style: italic;
+  transition: all .25s;
+  white-space: nowrap;
+  -webkit-appearance: none;
+  touch-action: manipulation;
+}
+.nav-btn:active { transform:scale(.93); }
+.nav-btn.current {
+  background: linear-gradient(135deg, #5a3518, #8a5828, #c9a96e);
+  border-color: rgba(201,169,110,0.6);
+  color: #f5ede0;
+  box-shadow: 0 2px 16px rgba(201,169,110,0.25);
+}
+.fall-symbol {
+  position:fixed; top:-40px; pointer-events:none; z-index:2;
+  animation:fall linear infinite;
+  font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;
+}
+/* ── MUSIC BUTTON ───────────────────────────────────────── */
+#music-btn {
+  position: fixed;
+  top: 16px; right: 16px;
+  z-index: 900;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(201,169,110,0.5);
+  background: rgba(18,11,4,0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: #c9a96e;
+  font-size: 19px;
+  cursor: pointer;
+  display: flex;
+  align-items: center; justify-content: center;
+  box-shadow: 0 2px 14px rgba(0,0,0,0.4), 0 0 0 0 rgba(201,169,110,0);
+  transition: opacity .3s, box-shadow .3s;
+  -webkit-appearance: none;
+  touch-action: manipulation;
+  font-family: 'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif;
+  animation: musicPulse 3s ease-in-out infinite;
+}
+@keyframes musicPulse {
+  0%,100% { box-shadow: 0 2px 14px rgba(0,0,0,0.4), 0 0 0 0 rgba(201,169,110,0.4); }
+  50%     { box-shadow: 0 2px 14px rgba(0,0,0,0.4), 0 0 0 8px rgba(201,169,110,0); }
+}
+#music-btn:active { transform: scale(0.92); }
+#music-btn.muted  { opacity: 0.4; animation: none; }
+</style>
+</head>
+<body>
+
+<!-- AUDIO -->
+<audio id="bg-audio" loop preload="auto" src="song.mp3"></audio>
+<button id="music-btn" onclick="toggleMusic()" title="Toggle music">🎵</button>
+
+<div class="bg-gradient"></div>
+<div class="vignette"></div>
+<canvas id="love-bg"></canvas>
+
+<!-- ═══════════════════ LOCK SCREEN ═══════════════════ -->
+<div id="lock-screen">
+  <div class="lock-icon">🔐</div>
+  <h1 class="lock-title">This is only for BUBU 🌹</h1>
+  <div class="ornament">✦ ✦ ✦</div>
+  <p class="lock-sub">Someone made this with all his love<br>just for you <span class="e">💗</span><br>Enter the secret password to open it</p>
+  <div class="pw-box">
+    <label><span class="e">🌷</span> Enter your secret password <span class="e">🌷</span></label>
+    <input class="pw-input" id="pw-input" type="password" placeholder="••••••" maxlength="20"
+           onkeydown="if(event.key==='Enter')checkPw()" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <button class="pw-btn" onclick="checkPw()">Open with Love <span class="e">💗</span></button>
+    <div class="pw-error" id="pw-error"><span class="e">❌</span> Wrong password, try again BUBU <span class="e">🥺</span></div>
+    <p class="pw-hint">Hint: the name of the person who loves you most <span class="e">🥰</span></p>
+  </div>
+</div>
+
+<!-- ═══════════════════ UNLOCK OVERLAY ═══════════════════ -->
+<div id="unlock-overlay">
+  <div class="unlock-msg">BUBU you got it! <span class="e">💗</span><br>Welcome to your love pages <span class="e">🌷</span></div>
+</div>
+
+<!-- ═══════════════════ MAIN CONTENT ═══════════════════ -->
+<div id="main-content">
+
+  <!-- PAGE: For You -->
+  <div class="page active" id="page7">
+    <div class="content">
+      <div class="sparkle-row">
+        <span class="sparkle-star e">✨</span>
+        <span class="sparkle-star e" style="animation-delay:.5s">🌸</span>
+        <span class="sparkle-star e" style="animation-delay:1s">✨</span>
+      </div>
+      <div class="tulip e" style="text-align:center;display:block;font-size:36px">🌷</div>
+      <h1 class="title">For My BUBU <span class="e">🌹</span></h1>
+      <div class="divider">✦</div>
+      <div class="sparkle-row">
+        <span class="tulip e" style="font-size:22px">🌷</span>
+        <span class="big-heart e" style="font-size:44px;margin:0;display:inline-block">🤍</span>
+        <span class="tulip e" style="font-size:22px;animation-delay:1.2s">🌷</span>
+      </div>
+      <div class="love-card" style="animation-delay:.2s">
+        <h3><span class="e">✉️</span> A letter from my heart</h3>
+        <div class="letter-line">Hey BUBU... I know today feels heavy. Your body is going through so much and I wish I could take all that pain away from you.</div>
+        <div class="letter-line">But I want you to know — on your hardest days, you are still the most beautiful, most precious thing in my entire world.</div>
+        <div class="letter-line">I love you not just on your happy days. I love you on these days too. Especially on these days. <span class="e">💗</span></div>
+      </div>
+      <div class="love-card" style="animation-delay:.4s">
+        <h3><span class="e">🌷</span> You are my tulip</h3>
+        <p>Just like your favourite flowers — you bloom in every season. You are delicate and strong at the same time. You make every place more beautiful just by being there.</p>
+      </div>
+      <div class="love-card" style="animation-delay:.6s">
+        <h3><span class="e">🫂</span> Right now I just want to...</h3>
+        <p>Hold you tight, give you the warmest hug, sit beside you, and not say a single word. Just be there. Because that's where I belong. Right next to you, BUBU. <span class="e">💞</span></p>
+      </div>
+      <div class="divider">✦</div>
+      <div class="sparkle-row">
+        <span class="sparkle-star e">🌸</span>
+        <span class="sparkle-star e" style="animation-delay:.7s">💗</span>
+        <span class="sparkle-star e" style="animation-delay:1.4s">🌸</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: Our Dreams -->
+  <div class="page" id="page8">
+    <div class="content">
+      <span class="big-heart e">🌹</span>
+      <h1 class="title">Things I Dream of With You</h1>
+      <p class="subtitle">Every single one — I want to do with YOU, BUBU <span class="e">💕</span></p>
+      <div class="divider">✦</div>
+      <div class="wish-grid">
+        <div class="wish-item"><div class="wish-icon e">🍦</div><div class="wish-text">Eating ice cream together at midnight, laughing about nothing <span class="e">🤍</span></div></div>
+        <div class="wish-item"><div class="wish-icon e">📺</div><div class="wish-text">Watching Kdrama side by side, crying at the same scenes <span class="e">💕</span></div></div>
+        <div class="wish-item"><div class="wish-icon e">🎬</div><div class="wish-text">Making cute romantic reels together, just us two <span class="e">🌹</span></div></div>
+        <div class="wish-item"><div class="wish-icon e">👗</div><div class="wish-text">Wearing matching outfits and walking like we own the world <span class="e">💫</span></div></div>
+        <div class="wish-item"><div class="wish-icon e">🥟</div><div class="wish-text">Eating hotpot together on cold nights, fingers warm <span class="e">🌶️</span></div></div>
+        <div class="wish-item"><div class="wish-icon e">🌷</div><div class="wish-text">Buying you tulips every time I see them, watching your eyes shine <span class="e">✨</span></div></div>
+      </div>
+      <div class="love-card" style="margin-top:8px">
+        <h3><span class="e">🤗</span> And most of all...</h3>
+        <p>Endless hugs. The kind where time stops. Kisses on your forehead. Holding your hand everywhere we go. That's all I need, BUBU. Just you. <span class="e">🌸</span></p>
+      </div>
+      <div class="confetti-burst e">🌷💗🌷💗🌷</div>
+    </div>
+  </div>
+
+  <!-- PAGE: So Lucky -->
+  <div class="page" id="page9">
+    <div class="content">
+      <div class="sparkle-row">
+        <span class="sparkle-star e">🌸</span>
+        <span class="sparkle-star e" style="animation-delay:.6s">✨</span>
+        <span class="sparkle-star e" style="animation-delay:1.2s">🌸</span>
+      </div>
+      <h1 class="title">I Am The Luckiest</h1>
+      <div class="big-heart e" style="font-size:64px">🍀</div>
+      <p class="subtitle">Out of every person in this world... somehow, you chose me. And I will never stop being grateful for that. <span class="e">🌹</span></p>
+      <div class="divider">✦</div>
+      <div class="love-card" style="animation-delay:.2s">
+        <h3><span class="e">💫</span> Lucky because...</h3>
+        <div class="letter-line">I get to see your face and that alone makes my whole day better.</div>
+        <div class="letter-line">I get to be the one you share your feelings with. The one you're real with.</div>
+        <div class="letter-line">I get to love someone as pure, as caring, as beautifully YOU as BUBU.</div>
+      </div>
+      <div class="love-card" style="animation-delay:.4s">
+        <h3><span class="e">🌷</span> What makes you special</h3>
+        <p>You are not just my girlfriend. You are my peace. My calm. My home. Wherever you are, that's where I want to be. Always. <span class="e">💗</span></p>
+      </div>
+      <div class="love-card" style="animation-delay:.6s">
+        <h3><span class="e">🫀</span> What I promise you</h3>
+        <p>Through your hard days and bright days — I'm not going anywhere. I choose you every single day. Even on the days you don't feel like you. Especially those days. <span class="e">🌹</span></p>
+      </div>
+      <div class="sparkle-row" style="margin-top:10px">
+        <span class="tulip e">🌷</span>
+        <span class="e" style="font-size:26px;animation:heartbeat 1.6s ease-in-out infinite;display:inline-block">💗</span>
+        <span class="tulip e" style="animation-delay:.8s">🌷</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAGE: Special (Proposal) -->
+  <div class="page" id="page10">
+    <div class="content">
+      <div class="sparkle-row">
+        <span class="sparkle-star e">✨</span>
+        <span class="sparkle-star e" style="animation-delay:.4s">💍</span>
+        <span class="sparkle-star e" style="animation-delay:.8s">✨</span>
+      </div>
+      <h1 class="title" style="font-size:clamp(19px,5.5vw,26px)">BUBU... I Have Something To Say <span class="e">🌹</span></h1>
+      <div class="divider">✦</div>
+      <div class="ring-box">
+        <div class="ring">💍<div class="ring-shine"></div></div>
+      </div>
+      <div class="love-card" style="animation-delay:.2s; border-color:rgba(201,169,110,0.5)">
+        <h3 style="color:#e8d5aa"><span class="e">💌</span> From the deepest part of me...</h3>
+        <div class="letter-line">BUBU, from the moment you came into my life, everything changed. The world became warmer. Days became softer. I became better — because of you.</div>
+        <div class="letter-line">You are my tulip in a world full of ordinary flowers. My Kdrama, my ice cream nights, my everything.</div>
+        <div class="letter-line">I don't want to imagine any future without your hugs, your laugh, your matching outfit beside mine.</div>
+      </div>
+      <p class="proposal-text">"So BUBU... will you be mine? Forever? <span class="e">🌷💍</span>"</p>
+      <div style="text-align:center;margin:16px 0">
+        <button class="yes-btn" onclick="sayYes()">Yes, always yours <span class="e">💗</span></button>
+      </div>
+      <div id="yes-msg">
+        <div class="e" style="font-size:38px;animation:heartbeat 1s ease-in-out infinite;display:block;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif">💗🌷💗</div><br>
+        <strong>SHE SAID YES!!! <span class="e">🎉🌹</span></strong><br><br>
+        BUBU, you just made me the happiest person alive. I love you so so so much. Today, tomorrow and every day after. You are MINE and I am YOURS. Forever. <span class="e">🌷💍✨</span><br><br>
+        <div class="confetti-burst e">🌷💗🌷💗🌷💗🌷</div>
+      </div>
+      <div class="sparkle-row" style="margin-top:14px">
+        <span class="sparkle-star e">🌸</span>
+        <span class="sparkle-star e" style="animation-delay:.5s">🌹</span>
+        <span class="sparkle-star e" style="animation-delay:1s">🌸</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="nav-buttons">
+    <button class="nav-btn current" id="btn7" onclick="goTo(7)"><span class="e">🌷</span> For You</button>
+    <button class="nav-btn" id="btn8" onclick="goTo(8)"><span class="e">💫</span> Dreams</button>
+    <button class="nav-btn" id="btn9" onclick="goTo(9)"><span class="e">🍀</span> Lucky</button>
+    <button class="nav-btn" id="btn10" onclick="goTo(10)"><span class="e">💍</span> Special</button>
+  </div>
+</div>
+
+<script>
+/* ── CANVAS — floating petals & gold particles ───────────── */
+const canvas = document.getElementById('love-bg');
+const ctx = canvas.getContext('2d');
+function resize(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
+resize(); window.addEventListener('resize', resize);
+
+/* Painting-palette symbols rendered as text (no emoji for canvas) */
+const SYMS = ['♥','❤','♡','✿','❀','✦','⁕','❧','✾'];
+/* Colors pulled from the painting */
+const COLS = [
+  'rgba(232,160,168,',   /* blush pink */
+  'rgba(201,169,110,',   /* gold */
+  'rgba(201,105,122,',   /* rose */
+  'rgba(168,196,160,',   /* sage */
+  'rgba(232,213,170,',   /* pale gold */
+  'rgba(212,184,150,',   /* warm cream */
+];
+const particles = [];
+for(let i=0;i<90;i++) particles.push({
+  x: Math.random()*window.innerWidth,
+  y: Math.random()*window.innerHeight,
+  size: 5+Math.random()*18,
+  speed: .15+Math.random()*.55,
+  drift: (Math.random()-.5)*.35,
+  sym: SYMS[Math.floor(Math.random()*SYMS.length)],
+  col: COLS[Math.floor(Math.random()*COLS.length)],
+  alpha: .03+Math.random()*.14,
+  phase: Math.random()*Math.PI*2,
+  rot: (Math.random()-.5)*.015, angle: 0
+});
+function drawFrame(ts){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const t=ts*.001;
+  particles.forEach(p=>{
+    p.y-=p.speed; p.x+=p.drift+Math.sin(t+p.phase)*.3; p.angle+=p.rot;
+    if(p.y<-40){ p.y=canvas.height+20; p.x=Math.random()*canvas.width; }
+    if(p.x<-40) p.x=canvas.width+20;
+    if(p.x>canvas.width+40) p.x=-20;
+    const pulse=.7+.3*Math.sin(t*1.3+p.phase);
+    ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.angle);
+    ctx.globalAlpha=p.alpha*pulse;
+    ctx.font=p.size+'px serif';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle=p.col+(p.alpha*pulse)+')';
+    ctx.fillText(p.sym,0,0);
+    ctx.restore();
+  });
+  requestAnimationFrame(drawFrame);
+}
+requestAnimationFrame(drawFrame);
+
+/* ── PASSWORD ───────────────────────────────────────────── */
+const CORRECT='Ahsan';
+function checkPw(){
+  const val=document.getElementById('pw-input').value.trim();
+  if(val===CORRECT){ unlockApp(); }
+  else{
+    const inp=document.getElementById('pw-input');
+    inp.classList.add('wrong');
+    document.getElementById('pw-error').style.display='block';
+    setTimeout(()=>inp.classList.remove('wrong'),500);
+    inp.value='';
+  }
+}
+
+function unlockApp(){
+  const ov=document.getElementById('unlock-overlay');
+  ov.style.display='flex';
+  const syms=['💗','🌷','🌹','✨','💍','🥰','💕','🌸','⭐','🤍'];
+  const cx=window.innerWidth/2, cy=window.innerHeight/2;
+  for(let i=0;i<60;i++){
+    setTimeout(()=>{
+      const el=document.createElement('div');
+      el.className='burst-symbol';
+      const angle=Math.random()*Math.PI*2;
+      const dist=100+Math.random()*260;
+      el.style.left=cx+'px'; el.style.top=cy+'px';
+      el.style.setProperty('--tx',(Math.cos(angle)*dist)+'px');
+      el.style.setProperty('--ty',(Math.sin(angle)*dist)+'px');
+      el.style.setProperty('--rot',(Math.random()*360)+'deg');
+      el.style.animationDuration=(.8+Math.random()*.9)+'s';
+      el.style.fontSize=(16+Math.random()*22)+'px';
+      el.textContent=syms[Math.floor(Math.random()*syms.length)];
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),2200);
+    },i*30);
+  }
+  setTimeout(()=>{
+    ov.style.display='none';
+    document.getElementById('lock-screen').style.display='none';
+    document.getElementById('main-content').style.display='block';
+  },2600);
+}
+
+/* ── NAVIGATION ─────────────────────────────────────────── */
+function goTo(n){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('current'));
+  document.getElementById('page'+n).classList.add('active');
+  document.getElementById('btn'+n).classList.add('current');
+  window.scrollTo(0,0);
+}
+
+/* ── PROPOSAL YES ───────────────────────────────────────── */
+function sayYes(){
+  document.getElementById('yes-msg').style.display='block';
+  document.querySelector('.yes-btn').style.display='none';
+  const s=['💗','🌷','🌹','✨','💍','🥰','💕','🌸','🤍'];
+  for(let i=0;i<40;i++){
+    setTimeout(()=>{
+      const el=document.createElement('div');
+      el.className='fall-symbol';
+      el.style.left=Math.random()*100+'vw';
+      el.style.fontSize=(14+Math.random()*18)+'px';
+      el.style.animationDuration=(2+Math.random()*3)+'s';
+      el.textContent=s[Math.floor(Math.random()*s.length)];
+      document.body.appendChild(el);
+      setTimeout(()=>el.remove(),5000);
+    },i*80);
+  }
+}
+
+/* ── MUSIC ──────────────────────────────────────────────── */
+const audio = document.getElementById('bg-audio');
+const musicBtn = document.getElementById('music-btn');
+let musicPlaying = false;
+
+audio.volume = 0.38;
+
+/* Play on first any user touch/click — works on ALL mobile browsers */
+function tryPlay(){
+  if(musicPlaying) return;
+  audio.play().then(()=>{
+    musicPlaying = true;
+    musicBtn.textContent = '🎵';
+  }).catch(()=>{});
+}
+
+document.addEventListener('touchstart', tryPlay, {passive:true});
+document.addEventListener('click', tryPlay);
+
+/* Also try immediately (desktop browsers allow it) */
+audio.play().then(()=>{
+  musicPlaying = true;
+  musicBtn.textContent = '🎵';
+}).catch(()=>{ musicBtn.textContent = '🎵'; });
+
+function toggleMusic(){
+  if(audio.paused){
+    audio.play().then(()=>{ musicPlaying=true; });
+    musicBtn.textContent = '🎵';
+    musicBtn.classList.remove('muted');
+  } else {
+    audio.pause();
+    musicPlaying = false;
+    musicBtn.textContent = '🔇';
+    musicBtn.classList.add('muted');
+  }
+}
+
+/* ── TAP LOVE MESSAGES ──────────────────────────────────── */
+const LOVE_MSGS=[
+  'I love you, wifey 💗',
+  'I love you, honey 🍯',
+  'I love you, baby 🌹',
+  'I love you, moon 🌙',
+  'I love you, soulmate 💞',
+  'I love you, sunshine ☀️'
+];
+
+const loveStyle=document.createElement('style');
+loveStyle.textContent=`
+  .love-tap {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-style: italic;
+    font-weight: 600;
+    font-size: clamp(16px, 4.5vw, 21px);
+    color: #c9a96e;
+    text-shadow: 0 0 14px rgba(201,169,110,0.9), 0 0 28px rgba(232,160,168,0.5);
+    white-space: nowrap;
+    animation: lovePop 1.9s ease forwards;
+    transform: translateX(-50%);
+    user-select: none;
+  }
+  @keyframes lovePop {
+    0%   { opacity:0; transform:translateX(-50%) translateY(0px) scale(0.5); }
+    18%  { opacity:1; transform:translateX(-50%) translateY(-12px) scale(1.12); }
+    50%  { opacity:1; transform:translateX(-50%) translateY(-30px) scale(1); }
+    100% { opacity:0; transform:translateX(-50%) translateY(-80px) scale(0.88); }
+  }
+`;
+document.head.appendChild(loveStyle);
+
+let lastMsgIdx=-1;
+document.addEventListener('click', handleTap);
+document.addEventListener('touchstart', handleTap, {passive:true});
+
+function handleTap(e){
+  const tag=(e.target||e.srcElement).tagName;
+  if(['BUTTON','INPUT','A'].includes(tag)) return;
+  let idx;
+  do{ idx=Math.floor(Math.random()*LOVE_MSGS.length); } while(idx===lastMsgIdx);
+  lastMsgIdx=idx;
+  const x=e.touches?e.touches[0].clientX:e.clientX;
+  const y=e.touches?e.touches[0].clientY:e.clientY;
+  const el=document.createElement('div');
+  el.className='love-tap';
+  el.textContent=LOVE_MSGS[idx];
+  el.style.left=x+'px';
+  el.style.top=y+'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),2000);
+}
+</script>
+</body>
+</html>
