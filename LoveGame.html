@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Find Your Way To Me 🌹</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none;background:#5cb85c;}
+.screen{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;transition:opacity .5s;}
+.screen.hidden{opacity:0;pointer-events:none;}
+
+/* INTRO */
+#intro{background:linear-gradient(170deg,#a8e6cf,#56b485);}
+.intro-heart{font-size:72px;animation:hb 1.4s ease-in-out infinite;margin-bottom:10px;}
+@keyframes hb{0%,100%{transform:scale(1)}50%{transform:scale(1.18)}}
+.intro-title{font-size:clamp(24px,6vw,36px);font-weight:700;color:#fff;text-align:center;margin-bottom:8px;text-shadow:0 2px 8px rgba(0,80,40,.3);font-family:Georgia,serif;font-style:italic;}
+.intro-sub{font-size:clamp(13px,3.5vw,15px);color:rgba(255,255,255,.92);text-align:center;line-height:1.9;margin-bottom:26px;max-width:280px;font-family:Arial,sans-serif;}
+.intro-sub em{color:#fff176;font-style:italic;}
+.start-btn{background:linear-gradient(135deg,#e91e63,#f06292);border:2px solid rgba(255,255,255,.6);color:#fff;padding:15px 48px;border-radius:50px;font-size:clamp(16px,4vw,20px);font-family:Georgia,serif;font-style:italic;cursor:pointer;-webkit-appearance:none;touch-action:manipulation;box-shadow:0 5px 20px rgba(233,30,99,.4);}
+.start-btn:active{transform:scale(.95);}
+
+/* GAME */
+#game{padding:0;background:#5cb85c;}
+canvas{display:block;width:100%;height:100%;}
+
+/* WIN */
+#win{background:linear-gradient(160deg,#ffe0ec,#ffb3c6);z-index:10;text-align:center;}
+.win-big{font-size:80px;animation:pop .6s cubic-bezier(.17,.67,.35,1.6) both;margin-bottom:6px;}
+@keyframes pop{0%{transform:scale(0);opacity:0}70%{transform:scale(1.25)}100%{transform:scale(1);opacity:1}}
+.win-title{font-size:clamp(26px,7vw,42px);font-weight:700;font-style:italic;color:#c2185b;margin-bottom:8px;font-family:Georgia,serif;}
+.win-msg{font-size:clamp(13px,3.5vw,15px);color:#880e4f;line-height:1.9;margin:0 auto 22px;max-width:280px;font-family:Arial,sans-serif;}
+.win-msg b{font-family:Georgia,serif;font-style:italic;font-size:1.1em;}
+.replay-btn{background:linear-gradient(135deg,#c2185b,#e91e63);border:none;color:#fff;padding:13px 36px;border-radius:30px;font-size:clamp(14px,4vw,17px);font-family:Georgia,serif;font-style:italic;cursor:pointer;-webkit-appearance:none;touch-action:manipulation;}
+.replay-btn:active{transform:scale(.95);}
+.fk{position:fixed;pointer-events:none;z-index:99;animation:fly ease-out forwards;}
+@keyframes fly{0%{opacity:1;transform:translate(0,0) scale(.4) rotate(var(--r1))}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(1.5) rotate(var(--r2))}}
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<div class="screen" id="intro">
+  <div class="intro-heart">💗</div>
+  <h1 class="intro-title">She's Looking For You…</h1>
+  <p class="intro-sub">BUBU is lost in the garden,<br>her heart aching for <em>you</em>.<br><br>Walk her through the winding path,<br>past flowers &amp; butterflies,<br>right into your arms. 🌹</p>
+  <button class="start-btn" onclick="startGame()">Walk to Him 💞</button>
+</div>
+
+<!-- GAME -->
+<div class="screen hidden" id="game">
+  <canvas id="gc"></canvas>
+</div>
+
+<!-- WIN -->
+<div class="screen hidden" id="win">
+  <div class="win-big">😘💋</div>
+  <div class="win-title">Umaaaaaaaa! 💋</div>
+  <p class="win-msg">You found him, BUBU! 🌷<br><b>He held you so tight.</b><br>Safe in his arms, forever loved.<br>Always &amp; always. 💗🌹✨</p>
+  <button class="replay-btn" onclick="replayGame()">Walk back again 🌷</button>
+</div>
+
+<script>
+const canvas = document.getElementById('gc');
+const ctx = canvas.getContext('2d');
+let W, H;
+let pathPts = [], pathDists = [], pathLen = 0;
+let player, goal, goalWY;
+let camY = 0;
+let gameActive = false, animId;
+let joystick = { on: false, sx: 0, sy: 0, dx: 0, dy: 0 };
+let tick = 0, moodI = 0, moodT = 0;
+
+// Scenery (pre-built, simple)
+let sceneTrees = [], sceneFlowers = [], sceneButterflies = [];
+
+// ── RESIZE ──
+function resize() {
+  W = window.innerWidth;
+  H = window.innerHeight;
+  canvas.width = W;
+  canvas.height = H;
+}
+
+// ── BUILD S-PATH ──
+function buildPath() {
+  pathPts = []; pathDists = [];
+  const cx = W / 2;
+  const amp = W * 0.26;
+  const SEGS = 7;
+  const segH = H * 0.5;
+  const totalH = SEGS * segH;
+  const startY = H * 0.85;
+  goalWY = startY - totalH - H * 0.1;
+
+  const STEPS = 200; // reduced for performance
+  for (let i = 0; i <= STEPS; i++) {
+    const t = i / STEPS;
+    pathPts.push({
+      x: cx + Math.sin(t * SEGS * Math.PI) * amp,
+      y: startY - t * totalH
+    });
+  }
+  // straight to goal
+  const last = pathPts[pathPts.length - 1];
+  for (let i = 1; i <= 30; i++) {
+    const f = i / 30;
+    pathPts.push({ x: last.x + (cx - last.x) * f, y: last.y + (goalWY - last.y) * f });
+  }
+
+  let total = 0;
+  pathDists = [0];
+  for (let i = 1; i < pathPts.length; i++) {
+    total += Math.hypot(pathPts[i].x - pathPts[i-1].x, pathPts[i].y - pathPts[i-1].y);
+    pathDists.push(total);
+  }
+  pathLen = total;
+}
+
+// ── BUILD SCENERY (fewer objects for mobile) ──
+function buildScenery() {
+  sceneTrees = []; sceneFlowers = []; sceneButterflies = [];
+  const wTop = goalWY - H * 0.2;
+  const wBot = pathPts[0].y + H * 0.1;
+  const wH = wBot - wTop;
+
+  // Trees - 16 total
+  for (let i = 0; i < 16; i++) {
+    const wy = wTop + Math.random() * wH;
+    const side = Math.random() < 0.5 ? -1 : 1;
+    const px = getPathX(wy);
+    const off = W * 0.14 + Math.random() * W * 0.3;
+    sceneTrees.push({ x: px + side * off, y: wy, t: Math.floor(Math.random() * 2), s: 0.7 + Math.random() * 0.6 });
+  }
+
+  // Flowers - 50 total (emoji strings, no heavy drawing)
+  const fe = ['🌸','🌺','🌼','🌻','🌷','🌹','🌿','🍀'];
+  for (let i = 0; i < 50; i++) {
+    const wy = wTop + Math.random() * wH;
+    const side = Math.random() < 0.5 ? -1 : 1;
+    const px = getPathX(wy);
+    sceneFlowers.push({
+      x: px + side * (14 + Math.random() * W * 0.4),
+      y: wy,
+      e: fe[Math.floor(Math.random() * fe.length)],
+      sz: 12 + Math.random() * 9
+    });
+  }
+
+  // Butterflies - 8 only
+  for (let i = 0; i < 8; i++) {
+    sceneButterflies.push({
+      x: Math.random() * W,
+      y: wTop + Math.random() * wH,
+      vx: (Math.random() - 0.5) * 0.5,
+      ph: Math.random() * Math.PI * 2
+    });
+  }
+}
+
+function getPathX(wy) {
+  let best = pathPts[0], bd = Infinity;
+  for (const p of pathPts) {
+    const d = Math.abs(p.y - wy);
+    if (d < bd) { bd = d; best = p; }
+  }
+  return best.x;
+}
+
+// ── INIT ──
+function initGame() {
+  resize();
+  buildPath();
+  buildScenery();
+  player = { x: pathPts[0].x, y: pathPts[0].y, idx: 0, step: 0, left: false, blush: 0, speed: 3 };
+  goal = { x: W / 2, y: goalWY, pulse: 0 };
+  camY = player.y - H * 0.72;
+  tick = 0; moodI = 0; moodT = 0;
+  gameActive = true;
+}
+
+// ── ADVANCE PLAYER ──
+function advance(jdx, jdy) {
+  if (!gameActive || (Math.abs(jdx) < 0.05 && Math.abs(jdy) < 0.05)) return;
+  if (player.idx >= pathPts.length - 1) return;
+  const ni = player.idx + 1;
+  const tx = pathPts[ni].x - pathPts[player.idx].x;
+  const ty = pathPts[ni].y - pathPts[player.idx].y;
+  const tl = Math.hypot(tx, ty) || 1;
+  const dot = (jdx * tx + jdy * ty) / tl;
+  if (dot < 0.08) return;
+  let rem = player.speed * Math.min(dot + 0.35, 1.2);
+  while (rem > 0 && player.idx < pathPts.length - 1) {
+    const nx = player.idx + 1;
+    const seg = Math.hypot(pathPts[nx].x - player.x, pathPts[nx].y - player.y);
+    if (seg <= rem) { player.x = pathPts[nx].x; player.y = pathPts[nx].y; player.idx = nx; rem -= seg; }
+    else { const f = rem / seg; player.x += (pathPts[nx].x - player.x) * f; player.y += (pathPts[nx].y - player.y) * f; rem = 0; }
+  }
+  player.step++;
+  if (tx !== 0) player.left = tx < 0;
+}
+
+// ── DRAW BG ──
+function drawBG() {
+  // Sky
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, '#64b5f6');
+  g.addColorStop(0.5, '#b3e5fc');
+  g.addColorStop(1, '#c8e6c9');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+
+  // Sun (static, no rays for perf)
+  ctx.fillStyle = 'rgba(255,240,100,0.9)';
+  ctx.beginPath();
+  ctx.arc(W * 0.82, 60, 38, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(255,250,180,0.4)';
+  ctx.beginPath();
+  ctx.arc(W * 0.82, 60, 58, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Ground
+  const groundY = pathPts[0].y - camY + 24;
+  if (groundY < H + 60) {
+    ctx.fillStyle = '#66bb6a';
+    ctx.fillRect(0, groundY, W, H - groundY + 60);
+  }
+}
+
+// ── DRAW TREE (simple shapes only) ──
+function drawTree(x, sy, type, scale) {
+  ctx.save();
+  ctx.translate(x, sy);
+  ctx.scale(scale, scale);
+  // Trunk
+  ctx.fillStyle = '#795548';
+  ctx.fillRect(-5, 0, 10, 36);
+  if (type === 0) {
+    // Round tree
+    ctx.fillStyle = '#388e3c';
+    ctx.beginPath(); ctx.arc(0, -28, 30, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#4caf50';
+    ctx.beginPath(); ctx.arc(-8, -36, 18, 0, Math.PI * 2); ctx.fill();
+  } else {
+    // Pink blossom tree
+    ctx.fillStyle = '#f48fb1';
+    ctx.beginPath(); ctx.arc(0, -30, 28, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#f06292';
+    ctx.beginPath(); ctx.arc(-8, -38, 16, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); ctx.arc(6, -34, 10, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+// ── DRAW PATH ──
+function drawPath() {
+  if (pathPts.length < 2) return;
+  // Shadow
+  ctx.strokeStyle = 'rgba(0,60,0,0.1)';
+  ctx.lineWidth = 28; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  ctx.beginPath();
+  pathPts.forEach((p, i) => { const sy = p.y - camY; i === 0 ? ctx.moveTo(p.x, sy) : ctx.lineTo(p.x, sy); });
+  ctx.stroke();
+  // Dirt
+  ctx.strokeStyle = '#d4b07a';
+  ctx.lineWidth = 20;
+  ctx.beginPath();
+  pathPts.forEach((p, i) => { const sy = p.y - camY; i === 0 ? ctx.moveTo(p.x, sy) : ctx.lineTo(p.x, sy); });
+  ctx.stroke();
+  // Highlight
+  ctx.strokeStyle = 'rgba(255,240,190,0.4)';
+  ctx.lineWidth = 6;
+  ctx.beginPath();
+  pathPts.forEach((p, i) => { const sy = p.y - camY; i === 0 ? ctx.moveTo(p.x, sy) : ctx.lineTo(p.x, sy); });
+  ctx.stroke();
+}
+
+// ── DRAW SCENERY ──
+function drawScenery() {
+  // Trees
+  sceneTrees.forEach(tr => {
+    const sy = tr.y - camY;
+    if (sy < -120 || sy > H + 80) return;
+    drawTree(tr.x, sy, tr.t, tr.s);
+  });
+
+  // Flowers (emoji, fast)
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  sceneFlowers.forEach(fl => {
+    const sy = fl.y - camY;
+    if (sy < -20 || sy > H + 20) return;
+    ctx.font = fl.sz + 'px serif';
+    ctx.fillText(fl.e, fl.x, sy);
+  });
+
+  // Butterflies (emoji, simple movement)
+  sceneButterflies.forEach(b => {
+    b.x += b.vx + Math.sin(tick * 0.02 + b.ph) * 0.3;
+    if (b.x < -30) b.x = W + 30;
+    if (b.x > W + 30) b.x = -30;
+    const sy = b.y - camY;
+    if (sy < -40 || sy > H + 40) return;
+    ctx.font = '16px serif';
+    ctx.fillText('🦋', b.x, sy);
+  });
+}
+
+// ── DRAW BUBU ──
+function drawBubu(x, sy, step, left, blush, hug) {
+  ctx.save();
+  ctx.translate(x, sy);
+  if (left) ctx.scale(-1, 1);
+  const bob = hug ? 0 : Math.sin(step * 0.2) * 2.5;
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  ctx.beginPath(); ctx.ellipse(0, 22 + bob, 10, 3, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Dress
+  ctx.fillStyle = '#e91e63';
+  ctx.beginPath();
+  ctx.moveTo(-10, 1 + bob);
+  ctx.bezierCurveTo(-16, 10 + bob, -14, 22 + bob, 0, 24 + bob);
+  ctx.bezierCurveTo(14, 22 + bob, 16, 10 + bob, 10, 1 + bob);
+  ctx.closePath(); ctx.fill();
+
+  // Body
+  ctx.fillStyle = '#f5c8a8';
+  ctx.beginPath(); ctx.ellipse(0, -2 + bob, 6, 8, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Hair
+  ctx.fillStyle = '#1a0a00';
+  ctx.beginPath(); ctx.ellipse(0, -14 + bob, 9, 9.5, 0, 0, Math.PI * 2); ctx.fill();
+  // Side hair
+  ctx.beginPath(); ctx.moveTo(-6, -8 + bob); ctx.bezierCurveTo(-14, 2 + bob, -12, 16 + bob, -8, 21 + bob); ctx.lineTo(-6, 21 + bob); ctx.bezierCurveTo(-10, 14 + bob, -11, 2 + bob, -4, -6 + bob); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(6, -8 + bob); ctx.bezierCurveTo(14, 2 + bob, 12, 16 + bob, 8, 21 + bob); ctx.lineTo(6, 21 + bob); ctx.bezierCurveTo(10, 14 + bob, 11, 2 + bob, 4, -6 + bob); ctx.fill();
+
+  // Flower in hair
+  ctx.font = '10px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('🌸', -5, -23 + bob);
+
+  // Face
+  ctx.fillStyle = '#f5c8a8';
+  ctx.beginPath(); ctx.ellipse(0, -14 + bob, 7, 7, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Blush
+  ctx.fillStyle = `rgba(255,100,130,${0.2 + blush * 0.5})`;
+  ctx.beginPath(); ctx.ellipse(-3.5, -12 + bob, 3, 1.8, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(3.5, -12 + bob, 3, 1.8, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Eyes
+  ctx.fillStyle = '#1a0808';
+  ctx.beginPath(); ctx.ellipse(-2.5, -14.5 + bob, 1.4, 1.7, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(2.5, -14.5 + bob, 1.4, 1.7, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.8)';
+  ctx.beginPath(); ctx.ellipse(-1.8, -15.2 + bob, 0.5, 0.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(3.2, -15.2 + bob, 0.5, 0.5, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Smile
+  ctx.strokeStyle = '#a06040'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.arc(0, -11 + bob, 2.8, 0.1, Math.PI - 0.1); ctx.stroke();
+
+  // Arms
+  ctx.strokeStyle = '#f5c8a8'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+  if (hug) {
+    ctx.beginPath(); ctx.moveTo(-8, 0); ctx.bezierCurveTo(-18, -4, -21, 1, -19, 8); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(8, 0); ctx.bezierCurveTo(18, -4, 21, 1, 19, 8); ctx.stroke();
+  } else {
+    const sw = Math.sin(step * 0.2) * 9;
+    ctx.beginPath(); ctx.moveTo(-8, 0 + bob); ctx.lineTo(-12, 10 + bob + sw * 0.25); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(8, 0 + bob); ctx.lineTo(12, 10 + bob - sw * 0.25); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// ── DRAW AHSAN ──
+function drawAhsan(x, sy, pulse, hug) {
+  ctx.save();
+  ctx.translate(x, sy);
+  const bob = Math.sin(pulse * 0.04) * 3;
+
+  // Glow
+  const gr = ctx.createRadialGradient(0, -5, 4, 0, -5, 55);
+  gr.addColorStop(0, 'rgba(255,220,100,0.18)');
+  gr.addColorStop(1, 'transparent');
+  ctx.fillStyle = gr;
+  ctx.beginPath(); ctx.arc(0, -5, 55, 0, Math.PI * 2); ctx.fill();
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.14)';
+  ctx.beginPath(); ctx.ellipse(0, 23 + bob, 13, 4, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Trousers
+  ctx.fillStyle = '#263238';
+  ctx.beginPath(); ctx.roundRect(-10, 7 + bob, 20, 17, 2); ctx.fill();
+
+  // Shirt
+  ctx.fillStyle = '#1b5e20';
+  ctx.beginPath(); ctx.roundRect(-12, -4 + bob, 24, 14, 4); ctx.fill();
+
+  // Arms
+  ctx.strokeStyle = '#c8a07a'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+  if (hug) {
+    ctx.beginPath(); ctx.moveTo(-11, 0 + bob); ctx.bezierCurveTo(-22, -5 + bob, -25, 0 + bob, -23, 9 + bob); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(11, 0 + bob); ctx.bezierCurveTo(22, -5 + bob, 25, 0 + bob, 23, 9 + bob); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.moveTo(-11, 0 + bob); ctx.bezierCurveTo(-24, -9 + bob, -29, -1 + bob, -27, 12 + bob); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(11, 0 + bob); ctx.bezierCurveTo(24, -9 + bob, 29, -1 + bob, 27, 12 + bob); ctx.stroke();
+  }
+  ctx.fillStyle = '#c8a07a';
+  ctx.beginPath(); ctx.arc(hug ? -23 : -27, (hug ? 9 : 12) + bob, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(hug ? 23 : 27, (hug ? 9 : 12) + bob, 5, 0, Math.PI * 2); ctx.fill();
+
+  // Hair
+  ctx.fillStyle = '#0a0400';
+  ctx.beginPath(); ctx.ellipse(0, -16 + bob, 11, 9, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-10, -18 + bob); ctx.bezierCurveTo(-3, -26 + bob, 6, -24 + bob, 10, -18 + bob); ctx.bezierCurveTo(12, -12 + bob, 9, -6 + bob, 8, -5 + bob); ctx.bezierCurveTo(4, -8 + bob, -2, -9 + bob, -10, -5 + bob); ctx.fill();
+
+  // Face
+  ctx.fillStyle = '#c8a07a';
+  ctx.beginPath(); ctx.ellipse(0, -13 + bob, 9, 9.5, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Eyes
+  ctx.fillStyle = '#100500';
+  ctx.beginPath(); ctx.ellipse(-3, -13.5 + bob, 1.3, 1.7, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(3, -13.5 + bob, 1.3, 1.7, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.7)';
+  ctx.beginPath(); ctx.ellipse(-2.2, -14.2 + bob, 0.5, 0.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(3.8, -14.2 + bob, 0.5, 0.5, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Smile
+  ctx.strokeStyle = '#7a4020'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(0, -9 + bob, 4, 0.15, Math.PI - 0.15); ctx.stroke();
+
+  if (!hug) {
+    // Floating hearts
+    ctx.font = '13px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.globalAlpha = 0.6 + 0.35 * Math.sin(pulse * 0.05);
+    ctx.fillText('💗', -12, -36 + bob + Math.sin(pulse * 0.05) * 5);
+    ctx.globalAlpha = 0.6 + 0.35 * Math.sin(pulse * 0.05 + 1.5);
+    ctx.fillText('🌹', 12, -36 + bob + Math.sin(pulse * 0.05 + 1.5) * 5);
+    ctx.globalAlpha = 1;
+
+    // Name tag
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.beginPath(); ctx.roundRect(-30, -58 + bob, 60, 17, 8); ctx.fill();
+    ctx.fillStyle = '#1b5e20';
+    ctx.font = 'italic bold 11px Georgia,serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('Ahsan 🌹', 0, -49 + bob);
+  }
+  ctx.restore();
+}
+
+// ── PROGRESS BAR ──
+function drawProgress(prog) {
+  const bw = Math.min(W - 36, 240), bh = 13, bx = (W - bw) / 2, by = 12;
+  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, bh / 2); ctx.fill();
+  if (prog > 0) {
+    const pg = ctx.createLinearGradient(bx, 0, bx + bw, 0);
+    pg.addColorStop(0, '#43a047'); pg.addColorStop(0.6, '#81c784'); pg.addColorStop(1, '#e91e63');
+    ctx.fillStyle = pg;
+    ctx.beginPath(); ctx.roundRect(bx + 2, by + 2, (bw - 4) * prog, bh - 4, (bh - 4) / 2); ctx.fill();
+  }
+  if (prog > 0.02) {
+    ctx.font = '10px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('💗', bx + 2 + (bw - 4) * prog, by + bh / 2);
+  }
+  ctx.fillStyle = 'rgba(255,255,255,0.88)';
+  ctx.font = '11px Arial,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(prog < 0.97 ? 'Follow the path to him… 🌸' : 'Almost there! 🌹', W / 2, by + bh / 2);
+}
+
+// ── JOYSTICK ──
+function drawJoystick() {
+  const { sx, sy, dx, dy } = joystick;
+  ctx.strokeStyle = 'rgba(80,160,80,0.35)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(sx, sy, 48, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = 'rgba(60,140,60,0.1)';
+  ctx.beginPath(); ctx.arc(sx, sy, 48, 0, Math.PI * 2); ctx.fill();
+  const kx = sx + dx * 40, ky = sy + dy * 40;
+  ctx.fillStyle = 'rgba(100,200,100,0.45)';
+  ctx.beginPath(); ctx.arc(kx, ky, 20, 0, Math.PI * 2); ctx.fill();
+}
+
+// ── MOODS ──
+const MOODS = [
+  { t: 'I miss you so much… 🥺', c: '#c62828' },
+  { t: 'Walking to you, my love 💗', c: '#e91e63' },
+  { t: 'Flowers remind me of you 🌸', c: '#ad1457' },
+  { t: 'My heart only knows you 💞', c: '#c2185b' },
+  { t: 'Almost there, wait for me! 🌷', c: '#e91e63' },
+  { t: 'I can see you!! 😍', c: '#d81b60' },
+];
+
+// ── GAME LOOP ──
+function gameLoop() {
+  if (!gameActive) return;
+  animId = requestAnimationFrame(gameLoop);
+  tick++;
+  goal.pulse++;
+  moodT++;
+  if (moodT % 210 === 0) moodI = (moodI + 1) % MOODS.length;
+
+  advance(joystick.dx, joystick.dy);
+  camY += (player.y - H * 0.72 - camY) * 0.09;
+
+  const dist = Math.hypot(player.x - goal.x, player.y - goal.y);
+  player.blush = dist < 80 ? Math.min(1, player.blush + 0.03) : Math.max(0, player.blush - 0.015);
+  if (dist < 120 && moodI !== 5) moodI = 5;
+  if (dist < 30) { triggerWin(); return; }
+
+  const prog = Math.min(1, pathDists[player.idx] / pathLen);
+
+  ctx.clearRect(0, 0, W, H);
+  drawBG();
+  drawScenery();
+  drawPath();
+
+  // Ahsan
+  const aSY = goal.y - camY;
+  if (aSY > -100 && aSY < H + 100) drawAhsan(goal.x, aSY, goal.pulse, false);
+
+  // Bubu
+  const bSY = player.y - camY;
+  drawBubu(player.x, bSY, player.step, player.left, player.blush, false);
+
+  // Mood bubble
+  const mood = MOODS[moodI];
+  ctx.font = 'italic 13px Georgia,serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const tw = ctx.measureText(mood.t).width + 20;
+  ctx.fillStyle = 'rgba(255,255,255,0.88)';
+  ctx.beginPath(); ctx.roundRect(player.x - tw / 2, bSY - 58, tw, 21, 10); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(player.x - 5, bSY - 37); ctx.lineTo(player.x + 5, bSY - 37); ctx.lineTo(player.x, bSY - 30); ctx.fill();
+  ctx.fillStyle = mood.c;
+  ctx.fillText(mood.t, player.x, bSY - 47);
+
+  drawProgress(prog);
+  if (joystick.on) drawJoystick();
+
+  // Hint
+  if (goal.pulse < 220) {
+    const a = Math.max(0, 1 - goal.pulse / 200);
+    ctx.fillStyle = `rgba(255,255,255,${a * 0.85})`;
+    ctx.font = '12px Arial,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('Hold & drag anywhere to walk 🌸', W / 2, H - 26);
+  }
+}
+
+// ── WIN ──
+function triggerWin() {
+  gameActive = false;
+  cancelAnimationFrame(animId);
+  ctx.clearRect(0, 0, W, H);
+  drawBG(); drawScenery(); drawPath();
+  const cx = W / 2, cy = H / 2 + 10;
+  drawAhsan(cx, cy, 200, true);
+  drawBubu(cx - 2, cy + 8, player.step, false, 1, true);
+  ctx.font = '60px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('💋', cx, cy - 82);
+  ctx.fillStyle = '#c62828';
+  ctx.font = 'italic bold clamp(18px,5vw,24px) Georgia,serif';
+  ctx.fillText('Umaaaaaaaa! 💋', cx, cy - 115);
+  setTimeout(() => {
+    document.getElementById('game').classList.add('hidden');
+    document.getElementById('win').classList.remove('hidden');
+    spawnParticles();
+  }, 500);
+}
+
+function spawnParticles() {
+  const emojis = ['💋','😘','💗','🌹','💕','🌷','✨','💞','🥰','❤️','🌸','🦋'];
+  const cx = W / 2, cy = H / 2;
+  for (let i = 0; i < 55; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'fk';
+      const angle = Math.random() * Math.PI * 2;
+      const dist = 50 + Math.random() * Math.min(W, H) * 0.42;
+      el.style.cssText = `left:${cx}px;top:${cy}px;font-size:${14+Math.random()*24}px;animation-duration:${0.9+Math.random()*1.3}s;animation-delay:${Math.random()*0.35}s`;
+      el.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+      el.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+      el.style.setProperty('--r1', (Math.random() * 30 - 15) + 'deg');
+      el.style.setProperty('--r2', (Math.random() * 70 - 35) + 'deg');
+      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 3200);
+    }, i * 45);
+  }
+}
+
+// ── TOUCH ──
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const t = e.changedTouches[0];
+  joystick = { on: true, sx: t.clientX, sy: t.clientY, dx: 0, dy: 0, id: t.identifier };
+}, { passive: false });
+
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  for (const t of e.changedTouches) {
+    if (t.identifier === joystick.id) {
+      const dx = t.clientX - joystick.sx, dy = t.clientY - joystick.sy;
+      const len = Math.hypot(dx, dy) || 1, maxR = 60, c = Math.min(len, maxR) / maxR;
+      joystick.dx = (dx / len) * c; joystick.dy = (dy / len) * c;
+    }
+  }
+}, { passive: false });
+
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  joystick.on = false; joystick.dx = 0; joystick.dy = 0;
+}, { passive: false });
+
+// Mouse
+let md = false;
+canvas.addEventListener('mousedown', e => { md = true; joystick = { on: true, sx: e.clientX, sy: e.clientY, dx: 0, dy: 0, id: 'm' }; });
+canvas.addEventListener('mousemove', e => {
+  if (!md) return;
+  const dx = e.clientX - joystick.sx, dy = e.clientY - joystick.sy;
+  const len = Math.hypot(dx, dy) || 1, maxR = 62, c = Math.min(len, maxR) / maxR;
+  joystick.dx = (dx / len) * c; joystick.dy = (dy / len) * c;
+});
+canvas.addEventListener('mouseup', () => { md = false; joystick.on = false; joystick.dx = 0; joystick.dy = 0; });
+
+// ── START / REPLAY ──
+window.startGame = function () {
+  document.getElementById('intro').classList.add('hidden');
+  document.getElementById('game').classList.remove('hidden');
+  initGame();
+  requestAnimationFrame(gameLoop);
+};
+window.replayGame = function () {
+  document.getElementById('win').classList.add('hidden');
+  document.getElementById('game').classList.remove('hidden');
+  initGame();
+  requestAnimationFrame(gameLoop);
+};
+window.addEventListener('resize', () => { if (gameActive) resize(); });
+</script>
+</body>
+</html>
